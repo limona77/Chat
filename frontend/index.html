@@ -58,7 +58,7 @@
             window.onload = function() {
                 document.getElementById("chatroom-selection").onsubmit = changeChatRoom
                 document.getElementById("chatroom-message").onsubmit = sendMessage
-
+                conn = new WebSocket("ws://" + window.location.host + "/ws");
                 if (window["WebSocket"]) {
                     console.log("WebSocket is supported by your Browser!");
                 }else{
