@@ -50,7 +50,7 @@
             function  sendMessage() {
                 var newmessage = document.getElementById("message")
                 if (newmessage != null) {
-                    console.log(newmessage)
+                    conn.send(newmessage.value)
                 }
                 return false
             }
@@ -58,9 +58,14 @@
             window.onload = function() {
                 document.getElementById("chatroom-selection").onsubmit = changeChatRoom
                 document.getElementById("chatroom-message").onsubmit = sendMessage
-                conn = new WebSocket("ws://" + window.location.host + "/ws");
+
                 if (window["WebSocket"]) {
                     console.log("WebSocket is supported by your Browser!");
+                    conn = new WebSocket("ws://" + window.location.host + "/ws");
+
+                    conn.onmessage = function (evt) {
+                        console.log(evt)
+                    }
                 }else{
                     console.log("Websocket is not supported by your Browser!");
                 }
