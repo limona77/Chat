@@ -9,7 +9,7 @@
         <div class="center">
             <h1>Amazing chat</h1>
             <h3 id="chat-header">Current in chat: general</h3>
-
+            <h3 id="connection-header">Connected to Websocket: false</h3>
             <form id="chatroom-selection">
                 <label for="chatroom">Chatroom:</label>
                 <input type="text" id="chatroom" name="chatroom"><br><br>
@@ -34,6 +34,16 @@
                 <input type="text" id="message" name="message"><br><br>
                 <input type="submit" value="Send message">>
             </form>
+            <div style="border: 3px solid black; margin-top: 30px">
+                <form id="login-form">
+                    <label for="username">username:</label>
+                    <input type="text" id="username" name="username"><br>
+                    <label for="password">password: </label>
+                    <input type="text" id="password" name="password"><br><br>
+                    <input type="submit" value="Login">
+                </form>
+
+            </div>
         </div>
 
         <script>
@@ -83,24 +93,66 @@
                 return false
             }
 
+            function login() {
+                let formData = {
+                    "username": document.getElementById("username").value,
+                    "password": document.getElementById("password").value
+                };
+
+                fetch("login", {
+                    method: 'post',
+                    body: JSON.stringify(formData),
+                    mode: 'cors'
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw 'Unauthorized';
+                        }
+                    })
+                    .then((data) => {
+                        // We are authenticated
+                        connectWebsocket(data.otp);
+                    })
+                    .catch((e) => {
+                        alert(e);
+                    });
+
+                return false;
+            }
+
+            function connectWebsocket(otp) {
+                if (window["WebSocket"]) {
+                    console.log("WebSocket is supported by your Browser!");
+
+                    // Correct WebSocket URL format
+                    conn = new WebSocket("ws://" + document.location.host + "/ws?otp=" + otp);
+
+                    conn.onopen = function(evt) {
+                        document.getElementById("connection-header").innerHTML = "Connected to WebSocket: true";
+                    };
+
+                    conn.onclose = function(evt) {
+                        document.getElementById("connection-header").innerHTML = "Connected to WebSocket: false";
+                    };
+
+                    conn.onmessage = function(evt) {
+                        const eventData = JSON.parse(evt.data);
+                        const event = Object.assign(new Event(), eventData);
+                        routeEvent(event);
+                    };
+                } else {
+                    alert("WebSocket is not supported by your Browser!");
+                }
+            }
+
+
             window.onload = function() {
                 document.getElementById("chatroom-selection").onsubmit = changeChatRoom
                 document.getElementById("chatroom-message").onsubmit = sendMessage
+                document.getElementById("login-form").onsubmit = login
 
-                if (window["WebSocket"]) {
-                    console.log("WebSocket is supported by your Browser!");
-                    conn = new WebSocket("ws://" + window.location.host + "/ws");
-
-                    conn.onmessage = function (evt) {
-                        const eventData = JSON.parse(evt.data)
-
-                        const event = new Object.assign(new Event,eventData)
-
-                        routeEvent(event)
-                    }
-                }else{
-                    console.log("Websocket is not supported by your Browser!");
-                }
             }
         </script>
 

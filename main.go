@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 )
@@ -11,8 +12,10 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 func setupApi() {
-	manager := NewManager()
-	http.Handle("/", http.FileServer(http.Dir("./frontend")))
+	ctx := context.Background()
 
+	manager := NewManager(ctx)
+	http.Handle("/", http.FileServer(http.Dir("./frontend")))
 	http.HandleFunc("/ws", manager.serveWS)
+	http.HandleFunc("/login", manager.loginHandler)
 }
